@@ -1,8 +1,10 @@
 class Collectible {
   constructor({x, y, value, id}) {
-
+    this.x = x;
+    this.y = y;
+    this.value = value;
+    this.id = id;
   }
-
 }
 
 /*
@@ -11,6 +13,8 @@ class Collectible {
 */
 try {
   module.exports = Collectible;
-} catch(e) {}
+} catch(e) {
+  console.log(e);
+}
 
 export default Collectible;
