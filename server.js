@@ -4,11 +4,21 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
 
 const app = express();
+
+app.use(helmet({
+  noSniff: true,
+  xssFilter: true,
+  noCache: true,
+  hidePoweredBy:{
+    setTo: 'PHP 7.4.3'
+  }
+}));
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
@@ -52,5 +62,38 @@ const server = app.listen(portNum, () => {
     }, 1500);
   }
 });
+
+let currentState = {
+  players: {},
+  coin: null
+};
+const io = socket(server);
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
+  socket.emit('new player', Object.keys(currentState.players).length, socket.id, (response) => {
+    const {player, coin} = response;
+    currentState.players[player.id] = player;
+    if(coin){
+      currentState.coin = coin;
+    }
+
+    io.emit('update state', currentState);
+  });
+  socket.on('move player', (arg) => {
+    const {player, coin} = arg;
+    currentState.players[player.id] = player;
+    if(coin){
+      currentState.coin = coin;
+    }
+    io.emit('update state', currentState);
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
+    delete currentState.players[socket.id];
+    io.emit('update state', currentState);
+  });
+});
+
 
 module.exports = app; // For testing
