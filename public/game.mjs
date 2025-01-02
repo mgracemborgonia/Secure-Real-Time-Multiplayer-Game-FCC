@@ -94,8 +94,8 @@ socket.on('new player', function(number_of_players, player_id, callback){
         x: player_x,
         y: player_y,
         score: 0,
-        id: player_id}
-    );
+        id: player_id
+    });
     if(number_of_players === 0){
         const max_id = Math.floor(Math.random() * 1000000);
         coin = new Collectible({
